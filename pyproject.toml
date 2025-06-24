@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "fast-hotels"
-version = "0.1.1"
+version = "0.1.2"
 description = "A fast, simple hotel scraper for Google Hotels, inspired by fast-flights."
 authors = [{name = "Jonathan Gan", email = "jg.developor@gmail.com"}]
 readme = "README.md"
@@ -17,4 +17,7 @@ classifiers = [
     "Programming Language :: Python :: 3",
     "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
-] 
+]
+
+[tool.setuptools.packages.find]
+where = ["."] 
