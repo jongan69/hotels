@@ -1,17 +1,17 @@
 from .models import HotelData, Guests, Hotel
-from typing import List
+from typing import List, Optional
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 import re
 import logging
 
-async def scrape_hotels(hotel_data: HotelData, guests: Guests, debug: bool = False, limit: int = 10) -> List[Hotel]:
+async def scrape_hotels(hotel_data: HotelData, guests: Guests, debug: bool = False, limit: Optional[int] = None) -> List[Hotel]:
     """
     Scrape hotel data from Google Hotels for the given hotel_data and guests.
     Args:
         hotel_data (HotelData): Search parameters for hotels.
         guests (Guests): Guest information.
         debug (bool): If True, dumps HTML and extra debug info.
-        limit (int): Maximum number of hotels to return.
+        limit (Optional[int]): Maximum number of hotels to return. If None, return all.
     Returns:
         List[Hotel]: List of scraped hotels.
     """
@@ -64,7 +64,10 @@ async def scrape_hotels(hotel_data: HotelData, guests: Guests, debug: bool = Fal
             # Get hotel name and price cards
             name_cards = await page.query_selector_all('div.uaTTDe')
             price_cards = await page.query_selector_all('div.x2A2jf')
-            for idx in range(min(len(name_cards), len(price_cards), limit)):
+            max_hotels = min(len(name_cards), len(price_cards))
+            if limit is not None:
+                max_hotels = min(max_hotels, limit)
+            for idx in range(max_hotels):
                 card = name_cards[idx]
                 # --- NAME EXTRACTION ---
                 name = None
@@ -132,4 +135,6 @@ async def scrape_hotels(hotel_data: HotelData, guests: Guests, debug: bool = Fal
         finally:
             await browser.close()
     logging.info(f"Returning {len(hotels)} hotels.")
-    return hotels[:limit] 
+    if limit is not None:
+        return hotels[:limit]
+    return hotels
