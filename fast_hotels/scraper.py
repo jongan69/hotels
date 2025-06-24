@@ -3,6 +3,7 @@ from typing import List, Optional
 from playwright.async_api import async_playwright, TimeoutError as PlaywrightTimeoutError
 import re
 import logging
+from fast_hotels.utils import get_city_from_iata
 
 async def scrape_hotels(hotel_data: HotelData, guests: Guests, debug: bool = False, limit: Optional[int] = None) -> List[Hotel]:
     """
@@ -28,7 +29,9 @@ async def scrape_hotels(hotel_data: HotelData, guests: Guests, debug: bool = Fal
             if guests.adults < 1:
                 logging.error("At least one adult guest is required.")
                 return []
-            location = hotel_data.location.replace(' ', '+')
+            location = get_city_from_iata(hotel_data.location)
+            logging.info(f"Resolved location: {location}")
+            location = location.replace(' ', '+')
             url = (
                 f"https://www.google.com/travel/hotels/{location}"
                 f"?checkin={hotel_data.checkin_date}&checkout={hotel_data.checkout_date}"

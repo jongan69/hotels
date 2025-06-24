@@ -3,6 +3,7 @@ from .scraper import scrape_hotels
 from typing import List, Optional
 import asyncio
 import logging
+import datetime
 
 def get_hotels(hotel_data: List[HotelData], guests: Guests, fetch_mode: str = "local", debug: bool = False, limit: Optional[int] = None, sort_by: Optional[str] = None) -> Result:
     """
@@ -22,6 +23,16 @@ def get_hotels(hotel_data: List[HotelData], guests: Guests, fetch_mode: str = "l
         return Result()
     if not isinstance(guests, Guests):
         logging.error("guests must be a Guests object.")
+        return Result()
+    # Validate checkin_date is not in the past
+    try:
+        checkin = datetime.datetime.strptime(hotel_data[0].checkin_date, "%Y-%m-%d").date()
+        today = datetime.date.today()
+        if checkin < today:
+            logging.error("checkin_date cannot be in the past.")
+            return Result()
+    except Exception as e:
+        logging.error(f"Invalid checkin_date format: {e}")
         return Result()
     if fetch_mode == "live":
         hotels = asyncio.run(scrape_hotels(hotel_data[0], guests, debug=debug, limit=limit))

@@ -7,9 +7,9 @@ logging.basicConfig(level=logging.INFO)
 # Example search parameters
 hotel_data = [
     HotelData(
-        checkin_date="2025-06-23",
+        checkin_date="2025-06-24",
         checkout_date="2025-06-25",
-        location="Tokyo"
+        location="CDG"
     )
 ]
 guests = Guests(adults=2, children=1)
