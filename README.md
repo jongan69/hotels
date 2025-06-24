@@ -56,4 +56,4 @@ python -m playwright install
 ```
 
 ## License
-MIT # hotels
+MIT

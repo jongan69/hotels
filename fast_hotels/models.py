@@ -18,7 +18,6 @@ class Hotel:
     name: str
     price: float
     rating: Optional[float] = None
-    address: Optional[str] = None
     url: Optional[str] = None
     amenities: List[str] = field(default_factory=list)
 
