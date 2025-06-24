@@ -9,7 +9,7 @@ hotel_data = [
     HotelData(
         checkin_date="2025-06-24",
         checkout_date="2025-06-25",
-        location="CDG"
+        location="Tokyo"
     )
 ]
 guests = Guests(adults=2, children=1)
