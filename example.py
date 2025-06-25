@@ -1,40 +1,71 @@
-from fast_hotels import HotelData, Guests, get_hotels
-import logging
+from fast_hotels.hotels_impl import HotelData, Guests
+from fast_hotels import create_filter, get_hotels
+import time
 
-# Configure logging for demonstration
-logging.basicConfig(level=logging.INFO)
-
-# Example search parameters
-hotel_data = [
-    HotelData(
-        checkin_date="2025-06-24",
-        checkout_date="2025-06-25",
-        location="Tokyo"
+def main():
+    # Create hotel search data (similar to FlightData in flights package)
+    hotel_data = [
+        HotelData(
+            checkin_date="2025-06-23",
+            checkout_date="2025-06-25",
+            location="Tokyo",
+            room_type="standard",
+            amenities=["wifi", "breakfast"]
+        )
+    ]
+    
+    # Create guests (similar to Passengers in flights package)
+    guests = Guests(
+        adults=2,
+        children=1,
+        infants=0
     )
-]
-guests = Guests(adults=2, children=1)
+    
+    # Create a filter (similar to flights package)
+    filter = create_filter(
+        hotel_data=hotel_data,
+        guests=guests,
+        room_type="standard",
+        amenities=["wifi", "breakfast"]
+    )
+    
+    # Print the base64 encoded filter (for debugging)
+    print("Generated filter:")
+    print(filter.as_b64().decode('utf-8'))
+    
+    # Test the new fast API
+    print("\n--- Testing New Fast API ---")
+    start_time = time.time()
+    
+    try:
+        # Use the new fast architecture
+        result = get_hotels(
+            hotel_data=hotel_data,
+            guests=guests,
+            room_type="standard",
+            amenities=["wifi", "breakfast"],
+            fetch_mode="common",
+            limit=5,
+            sort_by="price"
+        )
+        
+        elapsed = time.time() - start_time
+        print(f"New API took {elapsed:.2f} seconds")
+        print(f"Found {len(result.hotels)} hotels")
+        
+        for hotel in result.hotels:
+            print(f"Name: {hotel.name}")
+            print(f"Price: ${hotel.price}")
+            print(f"Rating: {hotel.rating}")
+            print(f"Amenities: {hotel.amenities}")
+            print(f"URL: {hotel.url}")
+            print("---")
+            
+        print(f"Lowest price: ${result.lowest_price}")
+        print(f"Current price: ${result.current_price}")
+        
+    except Exception as e:
+        print(f"New API failed: {e}")
 
-# 1. Fetch hotel results using live scraping (with debug enabled, limit=3)
-try:
-    # In debug mode, we can see the raw HTML of the page
-    result_live = get_hotels(hotel_data=hotel_data, guests=guests, fetch_mode="live", debug=False)
-    print("\n--- Live Scraping Results ---")
-    for hotel in result_live.hotels:
-        print(f"Name: {hotel.name}, Price: {hotel.price}, Rating: {hotel.rating}, "
-              f"URL: {hotel.url}, Amenities: {hotel.amenities}")
-    print(f"Lowest price: {result_live.lowest_price}, Current price: {result_live.current_price}")
-except Exception as e:
-    print(f"Error during live scraping: {e}")
-
-# 2. Fetch hotel results using mock data (limit=1)
-result_mock = get_hotels(hotel_data=hotel_data, guests=guests, fetch_mode="local", limit=1)
-print("\n--- Mock Data Results (limit=1) ---")
-for hotel in result_mock.hotels:
-    print(f"Name: {hotel.name}, Price: {hotel.price}, Rating: {hotel.rating}, "
-          f"URL: {hotel.url}, Amenities: {hotel.amenities}")
-print(f"Lowest price: {result_mock.lowest_price}, Current price: {result_mock.current_price}")
-
-# 3. Demonstrate error handling with invalid input
-invalid_result = get_hotels(hotel_data=[], guests="not_a_guests_object", fetch_mode="local")
-print("\n--- Invalid Input Results ---")
-print(f"Hotels: {invalid_result.hotels}, Lowest price: {invalid_result.lowest_price}") 
+if __name__ == "__main__":
+    main() 

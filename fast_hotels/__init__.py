@@ -1,4 +1,4 @@
-from .models import HotelData, Guests, Hotel, Result
-from .search import get_hotels
+from .core import get_hotels
+from .filter import create_filter
 
-__all__ = ["HotelData", "Guests", "Result", "get_hotels"] 
+__all__ = ["HotelData", "Guests", "Result", "get_hotels", "create_filter"] 

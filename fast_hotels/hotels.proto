@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+message Location {
+  string city = 1;
+  string country = 2;
+  string airport_code = 3;
+}
+
+message HotelData {
+  string checkin_date = 1;
+  string checkout_date = 2;
+  Location location = 3;
+  optional string room_type = 4;
+  repeated string amenities = 5;
+}
+
+enum RoomType {
+  UNKNOWN_ROOM = 0;
+  STANDARD = 1;
+  DELUXE = 2;
+  SUITE = 3;
+  EXECUTIVE = 4;
+}
+
+enum GuestType {
+  UNKNOWN_GUEST = 0;
+  ADULT = 1;
+  CHILD = 2;
+  INFANT = 3;
+}
+
+message Guests {
+  repeated GuestType guests = 1;
+}
+
+message Info {
+  repeated HotelData data = 1;
+  RoomType room_type = 2;
+  Guests guests = 3;
+  repeated string amenities = 5;
+} 
