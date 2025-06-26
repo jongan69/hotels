@@ -1,5 +1,7 @@
 syntax = "proto3";
 
+package fast_hotels;
+
 message Location {
   string city = 1;
   string country = 2;
