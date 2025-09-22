@@ -75,6 +75,7 @@ def get_hotels(
     amenities: Optional[List[str]] = None,
     limit: Optional[int] = None,
     sort_by: Optional[str] = None,
+    currency: str = "",
 ) -> Result:
     """Main API function for getting hotels"""
     return get_hotels_from_filter(
@@ -84,6 +85,7 @@ def get_hotels(
             room_type=room_type,
             amenities=amenities,
         ),
+        currency=currency,
         mode=fetch_mode,
         sort_by=sort_by,
         limit=limit,
@@ -104,6 +106,23 @@ def parse_response(
         return n or blank
     parser = LexborHTMLParser(r.text)
     hotels = []
+    # Helper: robust price extraction supporting USD ($) and KRW (₩/원/KRW)
+    import re
+    def extract_price_from_text(text: str) -> Optional[float]:
+        patterns = [
+            r"\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)",   # $12,345.67 or $ 12,345
+            r"₩\s*([0-9]{1,3}(?:,[0-9]{3})*)",                  # ₩12,345
+            r"([0-9]{1,3}(?:,[0-9]{3})*)\s*원",                 # 12,345원
+            r"KRW\s*([0-9]{1,3}(?:,[0-9]{3})*)",                # KRW 12,345
+        ]
+        for pattern in patterns:
+            m = re.search(pattern, text, flags=re.IGNORECASE)
+            if m:
+                try:
+                    return float(m.group(1).replace(',', ''))
+                except Exception:
+                    continue
+        return None
     # Use div.uaTTDe for hotel cards
     hotel_cards = parser.css('div.uaTTDe')
     for idx, card in enumerate(hotel_cards):
@@ -174,14 +193,8 @@ def parse_response(
                 url = 'https://www.google.com' + url
         # --- PRICE EXTRACTION ---
         price = None
-        import re
         card_text = card.text(strip=True)
-        price_matches = re.findall(r'\$([0-9,.]+)', card_text)
-        if price_matches:
-            try:
-                price = float(price_matches[0].replace(',', ''))
-            except Exception:
-                price = None
+        price = extract_price_from_text(card_text)
         if name and price is not None:
             hotels.append({
                 "name": name,
@@ -192,9 +205,15 @@ def parse_response(
             })
     if not hotels:
         # Fallback: try to extract any hotel-like data from the HTML
-        import re
-        price_pattern = r'\$(\d+(?:,\d+)?)'
-        prices = re.findall(price_pattern, r.text)
+        prices = []
+        # Try multiple currency formats for broader coverage
+        for pattern in [
+            r"\$\s*([0-9]{1,3}(?:,[0-9]{3})*(?:\.[0-9]+)?)",
+            r"₩\s*([0-9]{1,3}(?:,[0-9]{3})*)",
+            r"([0-9]{1,3}(?:,[0-9]{3})*)\s*원",
+            r"KRW\s*([0-9]{1,3}(?:,[0-9]{3})*)",
+        ]:
+            prices.extend(re.findall(pattern, r.text, flags=re.IGNORECASE))
         name_pattern = r'<h2[^>]*>([^<]+)</h2>'
         names = re.findall(name_pattern, r.text)
         potential_names = []
