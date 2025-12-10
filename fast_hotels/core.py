@@ -60,8 +60,12 @@ def get_hotels_from_filter(
     try:
         return parse_response(res, sort_by=sort_by, limit=limit)
     except RuntimeError as e:
+        # If parsing failed in common mode, try the fallback path automatically
+        if mode == "common":
+            return get_hotels_from_filter(filter, mode="fallback", sort_by=sort_by, limit=limit)
         if mode == "fallback":
             return get_hotels_from_filter(filter, mode="force-fallback", sort_by=sort_by, limit=limit)
+        # For other modes, re-raise the parsing error
         raise e
 
 
