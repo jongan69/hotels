@@ -180,10 +180,14 @@ def parse_response(
         price = None
         import re
         card_text = card.text(strip=True)
-        price_matches = re.findall(r'\$([0-9,.]+)', card_text)
+        price_matches = re.findall(r'[$₹£€]\s?([0-9][0-9,.]*)', card_text)
         if price_matches:
             try:
-                price = float(price_matches[0].replace(',', ''))
+                parsed_prices = [float(p.replace(',', '')) for p in price_matches]
+                # When a discount is shown, Google renders both the original
+                # (crossed-out) and current price; the current price is the
+                # lower of the two, so take the minimum rather than the first match.
+                price = min(parsed_prices)
             except Exception:
                 price = None
         if name and price is not None:
@@ -197,7 +201,7 @@ def parse_response(
     if not hotels:
         # Fallback: try to extract any hotel-like data from the HTML
         import re
-        price_pattern = r'\$(\d+(?:,\d+)?)'
+        price_pattern = r'[$₹£€]\s?(\d[\d,]*(?:\.\d+)?)'
         prices = re.findall(price_pattern, r.text)
         name_pattern = r'<h2[^>]*>([^<]+)</h2>'
         names = re.findall(name_pattern, r.text)
