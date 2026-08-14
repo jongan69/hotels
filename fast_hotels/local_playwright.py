@@ -1,5 +1,7 @@
 from typing import Any
 import asyncio
+from urllib.parse import urlsplit
+
 from playwright.async_api import async_playwright
 
 async def fetch_with_playwright(url: str) -> str:
@@ -8,7 +10,8 @@ async def fetch_with_playwright(url: str) -> str:
         browser = await p.chromium.launch()
         page = await browser.new_page()
         await page.goto(url)
-        if page.url.startswith("https://consent.google.com"):
+        consent_url = urlsplit(page.url)
+        if consent_url.scheme == "https" and consent_url.hostname == "consent.google.com":
             await page.click('text="Accept all"')
         locator = page.locator('div.x2A2jf, div.GIPbOc.sSHqwe')
         await locator.wait_for()
@@ -28,4 +31,4 @@ def local_playwright_fetch(params: dict) -> Any:
         text = body
         text_markdown = body
 
-    return DummyResponse 
+    return DummyResponse
